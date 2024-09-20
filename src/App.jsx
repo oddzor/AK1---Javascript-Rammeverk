@@ -3,12 +3,14 @@ import "./App.css";
 import GameEngine from "./Engine";
 import { supabase } from "./supabase";
 import HighScores from "./Scores"; 
+import Frontend from "./assets/FE.png"
 
 function App() {
   const [playerName, setPlayerName] = useState(""); // useState for player name
   const [startGame, setGameIsStarted] = useState(false); // useState for checking if game has started
-  const [finalScore, setFinalScore] = useState(null); // Store the final score when game ends
-  const [loading, setLoading] = useState(false);
+  const [finalScore, setFinalScore] = useState(null); // useState to store the final score when game ends
+  const [loading, setLoading] = useState(false); 
+  const [showHighScores, setShowHighScores] = useState(false); // Toggle high score visibility
 
   const handleStartGame = () => {
     if (playerName.trim()) {
@@ -19,7 +21,7 @@ function App() {
     }
   };
 
-  const saveScoreToSupabase = async (name, score) => {
+  const saveScoreToSupabase = async (name, score) => { // Inserting scores and error handling for Supabase
     setLoading(true);
     try {
       const { error } = await supabase
@@ -39,7 +41,7 @@ function App() {
     }
   };
 
-  const handleGameEnd = async (score) => {
+  const handleGameEnd = async (score) => {  // Game end triggered by 60 second timer, score saving.
     setGameIsStarted(false);
     setFinalScore(score);
 
@@ -48,11 +50,13 @@ function App() {
     }
   };
 
-  return (
-    <div>
+  return (  // Ternary operators depending on state, will display relevant elements and buttons
+    <div className="main-wrapper"> 
+      <div className="header-wrapper">
       <h1>
         React<span>ato</span>
-      </h1>
+      </h1> <img src={Frontend} style={{ width: "10rem", height: "10rem" }} alt="Frontend" />
+      </div>
       {!startGame ? (
         finalScore !== null ? (
           <div>
@@ -67,23 +71,35 @@ function App() {
           </div>
         ) : (
           <div>
-            <HighScores />
             <input
               type="text"
               placeholder="Enter your name"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
+              style={{
+                width: "100%",
+                height: "2rem",
+                marginBottom: "1rem",
+                borderRadius: "0.25rem",
+                textAlign: "center"
+                            }}
             />
             <br />
-            <button onClick={handleStartGame}>Start</button>
+            <div className="button-wrapper">
+            {!showHighScores && (
+              <button onClick={handleStartGame}>Start</button>
+            )}
+            <button onClick={() => setShowHighScores(!showHighScores)}>
+              {showHighScores ? "Hide Highscores" : "Show Highscores"}
+            </button>
+            </div>
           </div>
         )
       ) : (
-        <div>
-          <h2>Hello, {playerName}!</h2>
-          <GameEngine onGameEnd={handleGameEnd} />
-        </div>
+        <GameEngine playerName={playerName} onGameEnd={handleGameEnd} />
       )}
+
+      {showHighScores && <HighScores />}
     </div>
   );
 }
